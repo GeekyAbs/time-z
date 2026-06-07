@@ -6,3 +6,4 @@ sqlmodel
 sqlalchemy
 requests
 pydantic
+python-decouple

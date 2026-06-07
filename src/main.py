@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from typing import Union
 from api.events import router as event_router
+from contextlib import asynccontextmanager
 
 app = FastAPI()
 app.include_router(event_router, prefix='/api/events')
+
+@asynccontextmanager
+async 
 
 @app.get("/")
 def read_root():
