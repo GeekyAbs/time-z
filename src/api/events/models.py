@@ -1,29 +1,24 @@
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import datetime
+from typing import ClassVar, List, Optional
 
 from sqlalchemy import DateTime
 from sqlmodel import SQLModel, Field
+from timescaledb import TimescaleModel
+from timescaledb.utils import get_utc_now
 
 
-def get_utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-class EventModel(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    page: Optional[str] = ""
+# id + time (the partition column) come from TimescaleModel as a composite PK
+class EventModel(TimescaleModel, table=True):
+    page: str = Field(index=True)
     description: Optional[str] = ""
-    # sa_type is needed or postgres stores these as naive timestamps
-    created_at: datetime = Field(
-        default_factory=get_utc_now,
-        sa_type=DateTime(timezone=True),
-        nullable=False,
-    )
     updated_at: datetime = Field(
         default_factory=get_utc_now,
         sa_type=DateTime(timezone=True),
         nullable=False,
     )
+
+    __chunk_time_interval__: ClassVar[str] = "INTERVAL 1 day"
+    __drop_after__: ClassVar[str] = "INTERVAL 3 months"
 
 
 class EventCreateSchema(SQLModel):
@@ -33,6 +28,12 @@ class EventCreateSchema(SQLModel):
 
 class EventUpdateSchema(SQLModel):
     description: str
+
+
+class EventBucketSchema(SQLModel):
+    bucket: datetime
+    page: str
+    count: int
 
 
 class EventListSchema(SQLModel):
