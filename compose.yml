@@ -9,6 +9,9 @@ services:
     ports:
       - "8002:8002"
     command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+    depends_on:
+      db_service:
+        condition: service_healthy
     volumes:
       - ./src:/code:rw
     develop:
@@ -18,7 +21,7 @@ services:
         - action: rebuild
           path: requirements.txt
         - action: rebuild
-          path: compose.yaml
+          path: compose.yml
 
   db_service:
     image: timescale/timescaledb:latest-pg17
@@ -32,6 +35,11 @@ services:
       - 5432
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U time-user -d timescaledb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   timescaledb_data: 

@@ -1,13 +1,22 @@
-from fastapi import FastAPI
-from typing import Union
-from api.events import router as event_router
 from contextlib import asynccontextmanager
 
-app = FastAPI()
-app.include_router(event_router, prefix='/api/events')
+from fastapi import FastAPI
+
+from api.db.session import init_db
+from api.events import router as event_router
+
 
 @asynccontextmanager
-async 
+async def lifespan(app: FastAPI):
+    # before app startup
+    init_db()
+    yield
+    # after app shutdown
+
+
+app = FastAPI(lifespan=lifespan)
+app.include_router(event_router, prefix='/api/events')
+
 
 @app.get("/")
 def read_root():
@@ -17,6 +26,7 @@ def read_root():
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: str | None = None):
     return {"item_id": item_id, "q": q}
+
 
 @app.get("/healthz")
 def read_api_health():

@@ -19,7 +19,6 @@ class EventListSchema(BaseModel):
 class EventCreateSchema(BaseModel):
     page: str
     description: Optional[str] = Field(default="my description")
-    description: Optional[str] = Field(default="my description")
 
 class EventUpdateSchema(BaseModel):
     page : Optional[str] = ""
