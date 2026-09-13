@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -21,6 +22,7 @@ router = APIRouter()
 @router.get("/", response_model=List[EventBucketSchema])
 def read_events(
     duration: str = Query("1 day"),
+    since: datetime | None = Query(None, description="Only include buckets from this timestamp onward (ISO 8601)"),
     pages: List[str] = Query(None),
     session: Session = Depends(get_session),
 ):
@@ -30,6 +32,8 @@ def read_events(
         EventModel.page.label("page"),
         func.count().label("count"),
     )
+    if since:
+        query = query.where(EventModel.time >= since)
     if pages:
         query = query.where(EventModel.page.in_(pages))
     query = query.group_by(bucket, EventModel.page).order_by(bucket)
